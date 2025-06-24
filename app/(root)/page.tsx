@@ -4,8 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import {dummyInterviews} from "@/constants";
 import InterviewCard from "@/components/InterviewCard";
+import {getCurrentUser, getInterviewsByUserId, getLatestInterviews} from "@/lib/actions/auth.action";
 
-const Page = () => {
+const Page = async() => {
+
+    const user = await getCurrentUser();
+    //parallel operation using promise.all
+    const [userInterviews, latestInterviews] = await Promise.all([
+        await getInterviewsByUserId(user?.id),
+        await getLatestInterviews({userId : user?.id!})
+    ]);
+
+
+    const hasPastInterviews = userInterviews?.length > 0;
+    const hasUpcomingInterviews = latestInterviews?.length > 0;
+
     return (
         <>
             <section className="card-cta">
@@ -27,11 +40,13 @@ const Page = () => {
 
                 <div className="interviews-section">
                     {
-                        dummyInterviews.map((interview) => (
-                            <InterviewCard {...interview} key={interview.id}/>
-                        ))
+                       hasPastInterviews ? (
+                           userInterviews?.map((interview)=>(
+                             <InterviewCard {...interview} key={interview.id}  />
+                           ))
+                       ):(<p>You haven&apos;t taken any interview</p>)
                     }
-                    {/*<p>You haven&apos;t taken any interview</p>*/}
+
                 </div>
             </section>
 
@@ -39,11 +54,13 @@ const Page = () => {
                 <h2>Take an Interview</h2>
 
                 <div className="interviews-section">
-                    {
-                        dummyInterviews.map((interview) => (
-
+                    {   hasUpcomingInterviews ? (
+                        latestInterviews?.map((interview)=>(
                             <InterviewCard {...interview} key={interview.id}/>
                         ))
+                    ):(
+                        <p>There are no interview available</p>
+                    )
                     }
                 </div>
             </section>
