@@ -112,7 +112,6 @@ export async function getFeedbackByInterviewId(params: GetFeedbackByInterviewIdP
     const feedback = await db
         .collection('feedback')
         .where('interviewId', "==", interviewId)
-        .where('userId', "==", userId)
         .orderBy('createdAt', 'desc')
         .limit(1)
         .get()
